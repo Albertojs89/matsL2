@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lineage II Clan Mats Control</title>
+  <style>
+    :root {
+      --bg: #08090d;
+      --panel: rgba(18, 19, 28, .86);
+      --panel-2: rgba(34, 29, 43, .82);
+      --gold: #d6b268;
+      --gold-soft: #f4d998;
+      --blue: #7db8ff;
+      --red: #ff6a6a;
+      --green: #8ff0a4;
+      --text: #f5efe2;
+      --muted: #b9ad98;
+      --line: rgba(214,178,104,.28);
+      --shadow: 0 18px 70px rgba(0,0,0,.55);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Georgia, 'Times New Roman', serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 20% 10%, rgba(90, 65, 130, .35), transparent 28%),
+        radial-gradient(circle at 85% 15%, rgba(45, 98, 150, .32), transparent 30%),
+        radial-gradient(circle at 50% 100%, rgba(167, 111, 45, .22), transparent 38%),
+        linear-gradient(135deg, #050609 0%, #10111a 50%, #09080d 100%);
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.02) 1px, transparent 1px);
+      background-size: 44px 44px;
+      mask-image: radial-gradient(circle, black, transparent 78%);
+      opacity: .45;
+    }
+
+    .app {
+      width: min(1380px, calc(100% - 28px));
+      margin: 24px auto 36px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero {
+      padding: 28px;
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      background: linear-gradient(145deg, rgba(27,29,43,.92), rgba(15,14,20,.78));
+      box-shadow: var(--shadow), inset 0 0 45px rgba(214,178,104,.06);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: "ADEN CLAN VAULT";
+      position: absolute;
+      right: -20px;
+      top: 18px;
+      font-size: clamp(38px, 7vw, 100px);
+      color: rgba(214,178,104,.045);
+      letter-spacing: 10px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .title-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: flex-start;
+      position: relative;
+      z-index: 2;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(30px, 4vw, 58px);
+      line-height: .95;
+      color: var(--gold-soft);
+      text-shadow: 0 0 22px rgba(214,178,104,.25);
+      letter-spacing: 1px;
+    }
+
+    .subtitle {
+      margin: 12px 0 0;
+      color: var(--muted);
+      font-size: 16px;
+      max-width: 760px;
+    }
+
+    .badge {
+      border: 1px solid rgba(244,217,152,.45);
+      color: var(--gold-soft);
+      border-radius: 999px;
+      padding: 10px 16px;
+      background: rgba(0,0,0,.32);
+      box-shadow: inset 0 0 18px rgba(214,178,104,.08);
+      white-space: nowrap;
+    }
+
+    .player-card {
+      display: grid;
+      grid-template-columns: 1.5fr .7fr .7fr;
+      gap: 14px;
+      margin-top: 26px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .field {
+      background: rgba(0,0,0,.34);
+      border: 1px solid rgba(214,178,104,.26);
+      border-radius: 18px;
+      padding: 12px 14px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 7px;
+    }
+
+    input, textarea {
+      width: 100%;
+      border: 0;
+      outline: none;
+      background: transparent;
+      color: var(--text);
+      font: inherit;
+      font-size: 19px;
+    }
+
+    input::placeholder, textarea::placeholder { color: rgba(245,239,226,.38); }
+    textarea { min-height: 92px; resize: vertical; line-height: 1.45; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: 26px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(90deg, rgba(214,178,104,.12), transparent);
+    }
+
+    .panel-head h2 { margin: 0; font-size: 22px; color: var(--gold-soft); }
+    .counter-total { color: var(--muted); font-size: 14px; }
+
+    .materials {
+      padding: 18px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(178px, 1fr));
+      gap: 14px;
+    }
+
+    .mat-card {
+      border: 1px solid rgba(214,178,104,.22);
+      border-radius: 20px;
+      background: linear-gradient(150deg, rgba(255,255,255,.045), rgba(255,255,255,.012));
+      padding: 13px;
+      min-height: 176px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: inset 0 0 22px rgba(0,0,0,.2);
+      transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+    }
+
+    .mat-card:has(input:not([value="0"])) {
+      border-color: rgba(143,240,164,.45);
+    }
+
+    .mat-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(244,217,152,.55);
+      box-shadow: 0 12px 28px rgba(0,0,0,.28), inset 0 0 24px rgba(214,178,104,.06);
+    }
+
+    .mat-top {
+      display: flex;
+      gap: 11px;
+      align-items: center;
+    }
+
+    .mat-icon {
+      width: 54px;
+      height: 54px;
+      flex: 0 0 54px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(244,217,152,.36);
+      background:
+        radial-gradient(circle at 35% 25%, rgba(255,255,255,.22), transparent 26%),
+        linear-gradient(145deg, #332a1d, #11131b);
+      box-shadow: inset 0 0 16px rgba(214,178,104,.15), 0 0 18px rgba(125,184,255,.08);
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .mat-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+    }
+
+    .mat-icon span { font-size: 23px; opacity: .9; }
+
+    .mat-name {
+      font-size: 16px;
+      line-height: 1.15;
+      color: #fff5dc;
+    }
+
+    .mat-type {
+      margin-top: 5px;
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .8px;
+    }
+
+    .stepper {
+      display: grid;
+      grid-template-columns: 40px 1fr 40px;
+      gap: 8px;
+      align-items: center;
+      margin-top: 14px;
+    }
+
+    .btn {
+      border: 1px solid rgba(244,217,152,.32);
+      color: var(--gold-soft);
+      background: rgba(0,0,0,.38);
+      border-radius: 12px;
+      min-height: 40px;
+      font-size: 22px;
+      cursor: pointer;
+      transition: transform .12s ease, background .12s ease;
+    }
+
+    .btn:hover { transform: scale(1.04); background: rgba(214,178,104,.14); }
+    .btn.minus { color: #ffb0a7; }
+    .btn.plus { color: #b9ffc5; }
+
+    .qty {
+      text-align: center;
+      border: 1px solid rgba(214,178,104,.18);
+      border-radius: 12px;
+      min-height: 40px;
+      background: rgba(0,0,0,.28);
+      font-size: 20px;
+      font-weight: 700;
+      color: white;
+    }
+
+    .side {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .summary-list {
+      padding: 16px 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 360px;
+      overflow: auto;
+    }
+
+    .summary-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 9px 10px;
+      border-radius: 13px;
+      background: rgba(255,255,255,.045);
+      border: 1px solid rgba(255,255,255,.055);
+    }
+
+    .summary-item strong { color: var(--gold-soft); }
+    .empty { color: var(--muted); font-style: italic; }
+
+    .notes { padding: 18px; }
+    .notes .field + .field { margin-top: 14px; }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 0 18px 18px;
+    }
+
+    .action-btn {
+      border: 1px solid rgba(244,217,152,.34);
+      color: var(--text);
+      background: linear-gradient(145deg, rgba(214,178,104,.18), rgba(0,0,0,.32));
+      border-radius: 14px;
+      padding: 12px;
+      cursor: pointer;
+      font-weight: 700;
+      letter-spacing: .4px;
+    }
+
+    .action-btn.danger { border-color: rgba(255,106,106,.36); color: #ffd1cc; }
+
+    .capture-footer {
+      margin-top: 18px;
+      padding: 16px 20px;
+      text-align: center;
+      color: var(--muted);
+      border: 1px dashed rgba(214,178,104,.3);
+      border-radius: 20px;
+      background: rgba(0,0,0,.23);
+    }
+
+    @media (max-width: 980px) {
+      .layout, .player-card { grid-template-columns: 1fr; }
+      .title-row { flex-direction: column; }
+      .badge { white-space: normal; }
+    }
+
+    @media print {
+      body { background: #08090d; }
+      .actions, .capture-footer { display: none; }
+      .app { width: 100%; margin: 0; }
+      .panel, .hero { box-shadow: none; }
+    }
+
+    .export-card {
+      margin-top: 18px;
+      border: 1px solid rgba(125,184,255,.28);
+      border-radius: 22px;
+      padding: 16px;
+      background: linear-gradient(145deg, rgba(12,17,28,.92), rgba(31,25,39,.82));
+      box-shadow: inset 0 0 24px rgba(125,184,255,.05);
+    }
+
+    .export-card h3 {
+      margin: 0 0 8px;
+      color: var(--blue);
+      font-size: 19px;
+    }
+
+    .export-card p {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .export-output {
+      width: 100%;
+      min-height: 210px;
+      resize: vertical;
+      border-radius: 16px;
+      border: 1px solid rgba(244,217,152,.24);
+      background: rgba(0,0,0,.36);
+      color: #f6eedc;
+      padding: 14px;
+      font-family: Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      outline: none;
+    }
+
+    .copy-status {
+      min-height: 18px;
+      color: var(--green);
+      font-size: 13px;
+      margin-top: 8px;
+    }
+
+    .compact-sheet {
+      display: none;
+      margin-top: 18px;
+      border: 1px solid rgba(244,217,152,.36);
+      border-radius: 24px;
+      padding: 20px;
+      background: rgba(8,9,13,.94);
+    }
+
+    .compact-sheet h2 {
+      margin: 0 0 12px;
+      color: var(--gold-soft);
+    }
+
+    .compact-grid {
+      columns: 2;
+      column-gap: 34px;
+      font-size: 15px;
+    }
+
+    .compact-line {
+      break-inside: avoid;
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      padding: 5px 0;
+    }
+
+    body.print-mode .hero,
+    body.print-mode .layout,
+    body.print-mode .capture-footer { display: none; }
+
+    body.print-mode .compact-sheet { display: block; }
+
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="hero">
+      <div class="title-row">
+        <div>
+          <h1>Lineage II<br>Clan Mats Control</h1>
+          <p class="subtitle">Registro visual semanal para aportes de clan. Rellena nickname, level, materiales, recipes y drops. Después haz captura de pantalla.</p>
+        </div>
+        <div class="badge" id="weekLabel">Weekly Collection</div>
+      </div>
+
+      <div class="player-card">
+        <div class="field">
+          <label for="nickname">Nickname</label>
+          <input id="nickname" placeholder="Ej. DwarfCrafter" />
+        </div>
+        <div class="field">
+          <label for="level">Level</label>
+          <input id="level" type="number" min="1" max="80" placeholder="76" />
+        </div>
+        <div class="field">
+          <label for="clanRole">Role / Class</label>
+          <input id="clanRole" placeholder="Spoiler / Crafter" />
+        </div>
+      </div>
+    </section>
+
+    <section class="layout">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Materials</h2>
+          <div class="counter-total">Total unidades: <strong id="totalQty">0</strong></div>
+        </div>
+        <div class="materials" id="materialsGrid"></div>
+      </div>
+
+      <aside class="side">
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Resumen captura</h2>
+            <div class="counter-total"><strong id="filledCount">0</strong> mats</div>
+          </div>
+          <div class="summary-list" id="summaryList">
+            <div class="empty">Aún no hay materiales añadidos.</div>
+          </div>
+          <div class="actions">
+            <button class="action-btn" id="sortBtn" type="button">Ordenar por cantidad</button>
+            <button class="action-btn danger" id="resetBtn" type="button">Reset</button>
+          </div>
+
+
+        <div class="export-card">
+          <h3>Informe para el reclutador</h3>
+          <p>Genera un resumen limpio para copiar en Discord/WhatsApp/foro. Es más fiable que una captura larga.</p>
+          <textarea id="exportOutput" class="export-output" readonly placeholder="Aquí aparecerá el informe..."></textarea>
+          <div class="actions">
+            <button class="action-btn" id="generateReportBtn" type="button">Generar informe</button>
+            <button class="action-btn" id="copyReportBtn" type="button">Copiar informe</button>
+            <button class="action-btn" id="compactViewBtn" type="button">Vista captura limpia</button>
+          </div>
+          <div class="copy-status" id="copyStatus"></div>
+        </div>
+
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h2>Recipes & Drops</h2></div>
+          <div class="notes">
+            <div class="field">
+              <label for="recipes">Recipes</label>
+              <textarea id="recipes" placeholder="Ej. Recipe: Tallum Plate Armor 60%, Recipe: Draconic Bow..."></textarea>
+            </div>
+            <div class="field">
+              <label for="drops">Drops / Spoils relevantes</label>
+              <textarea id="drops" placeholder="Ej. EWA x1, SOP x3, Mold Glue x2..."></textarea>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+
+
+    <section class="compact-sheet" id="compactSheet">
+      <h2>Clan Mats Report</h2>
+      <div id="compactInfo"></div>
+      <div class="compact-grid" id="compactGrid"></div>
+      <div id="compactNotes"></div>
+      <div class="actions" style="margin-top:18px;">
+        <button class="action-btn" id="backAppBtn" type="button">Volver</button>
+      </div>
+    </section>
+
+
+    <div class="capture-footer">Consejo: para informar al reclutador, usa “Generar informe” y copia el texto. Para captura, usa “Vista captura limpia”.</div>
+  </main>
+
+  <script>
+    const materials = [
+      { name: 'Stem', type: 'Base', icon: '🌿' },
+      { name: 'Animal Bone', type: 'Base', icon: '🦴' },
+      { name: 'Animal Skin', type: 'Base', icon: '🐾' },
+      { name: 'Thread', type: 'Base', icon: '🧵' },
+      { name: 'Suede', type: 'Base', icon: '🟫' },
+      { name: 'Iron Ore', type: 'Ore', icon: '⛏️' },
+      { name: 'Coal', type: 'Ore', icon: '⚫' },
+      { name: 'Charcoal', type: 'Ore', icon: '🔥' },
+      { name: 'Silver Nugget', type: 'Ore', icon: '◇' },
+      { name: 'Mithril Ore', type: 'Ore', icon: '💠' },
+      { name: 'Oriharukon Ore', type: 'Ore', icon: '🔷' },
+      { name: 'Adamantite Nugget', type: 'Ore', icon: '🔶' },
+      { name: 'Stone of Purity', type: 'Rare', icon: '✨' },
+      { name: 'Braided Hemp', type: 'Crafted', icon: '〰️' },
+      { name: 'Coarse Bone Powder', type: 'Crafted', icon: '⚱️' },
+      { name: 'Cokes', type: 'Crafted', icon: '⬛' },
+      { name: 'Leather', type: 'Crafted', icon: '📜' },
+      { name: 'Steel', type: 'Crafted', icon: '⚙️' },
+      { name: 'Cord', type: 'Crafted', icon: '➰' },
+      { name: 'High-Grade Suede', type: 'Crafted', icon: '🟤' },
+      { name: 'Crafted Leather', type: 'Crafted', icon: '🛡️' },
+      { name: 'Metallic Thread', type: 'Crafted', icon: '🪡' },
+      { name: 'Metallic Fiber', type: 'Crafted', icon: '🕸️' },
+      { name: 'Durable Metal Plate', type: 'Crafted', icon: '▣' },
+      { name: 'Metal Hardener', type: 'Crafted', icon: '🔩' },
+      { name: 'Compound Braid', type: 'Crafted', icon: '🪢' },
+      { name: 'Synthetic Cokes', type: 'Crafted', icon: '◼️' },
+      { name: 'Varnish', type: 'Base', icon: '🧪' },
+      { name: 'Varnish of Purity', type: 'Crafted', icon: '💧' },
+      { name: 'Mithril Alloy', type: 'Crafted', icon: '🔹' },
+      { name: 'Oriharukon', type: 'Crafted', icon: '💎' },
+      { name: 'Mold Glue', type: 'Mold', icon: '🧴' },
+      { name: 'Mold Hardener', type: 'Mold', icon: '🧱' },
+      { name: 'Mold Lubricant', type: 'Mold', icon: '🛢️' },
+      { name: 'Enria', type: 'Rare', icon: '🔴' },
+      { name: 'Asofe', type: 'Rare', icon: '🟣' },
+      { name: 'Thons', type: 'Rare', icon: '🟡' },
+      { name: 'Steel Mold', type: 'Mold', icon: '🏗️' },
+      { name: 'Silver Mold', type: 'Mold', icon: '🏛️' },
+      { name: "Artisan's Frame", type: 'Frame', icon: '🧰' },
+      { name: "Blacksmith's Frame", type: 'Frame', icon: '⚒️' },
+      { name: "Maestro Mold", type: 'Mold', icon: '👑' },
+      { name: "Maestro Holder", type: 'Mold', icon: '🏺' },
+      { name: "Maestro Anvil Lock", type: 'Mold', icon: '🔐' },
+      { name: "Warsmith's Mold", type: 'Mold', icon: '🗜️' },
+      { name: "Warsmith's Holder", type: 'Mold', icon: '📦' },
+      { name: "Craftsman Mold", type: 'Mold', icon: '🧲' },
+      { name: "Arcsmith's Anvil", type: 'Mold', icon: '⚒️' }
+    ];
+
+    const grid = document.getElementById('materialsGrid');
+    const summaryList = document.getElementById('summaryList');
+    const totalQty = document.getElementById('totalQty');
+    const filledCount = document.getElementById('filledCount');
+    const resetBtn = document.getElementById('resetBtn');
+    const sortBtn = document.getElementById('sortBtn');
+
+    const generateReportBtn = document.getElementById('generateReportBtn');
+    const copyReportBtn = document.getElementById('copyReportBtn');
+    const compactViewBtn = document.getElementById('compactViewBtn');
+    const backAppBtn = document.getElementById('backAppBtn');
+    const exportOutput = document.getElementById('exportOutput');
+    const copyStatus = document.getElementById('copyStatus');
+    const compactInfo = document.getElementById('compactInfo');
+    const compactGrid = document.getElementById('compactGrid');
+    const compactNotes = document.getElementById('compactNotes');
+
+    let sortByQuantity = false;
+
+    function createCard(mat, index) {
+      const card = document.createElement('article');
+      card.className = 'mat-card';
+      card.innerHTML = `
+        <div class="mat-top">
+          <button class="mat-icon" type="button" title="Click +1">
+            <img src="" alt="${mat.name}">
+            <span>${mat.icon}</span>
+          </button>
+          <div>
+            <div class="mat-name">${mat.name}</div>
+            <div class="mat-type">${mat.type}</div>
+          </div>
+        </div>
+        <div class="stepper">
+          <button class="btn minus" type="button">−</button>
+          <input class="qty" type="number" min="0" value="0" data-name="${mat.name}" data-index="${index}">
+          <button class="btn plus" type="button">+</button>
+        </div>
+      `;
+
+      const qty = card.querySelector('.qty');
+      card.querySelector('.plus').addEventListener('click', () => updateQty(qty, 1));
+      card.querySelector('.minus').addEventListener('click', () => updateQty(qty, -1));
+      card.querySelector('.mat-icon').addEventListener('click', () => updateQty(qty, 1));
+      qty.addEventListener('input', () => {
+        if (+qty.value < 0 || qty.value === '') qty.value = 0;
+        refreshSummary();
+      });
+
+      return card;
+    }
+
+    function updateQty(input, delta) {
+      const current = parseInt(input.value || '0', 10);
+      input.value = Math.max(0, current + delta);
+      refreshSummary();
+    }
+
+    function refreshSummary() {
+      const rows = [...document.querySelectorAll('.qty')]
+        .map(input => ({ name: input.dataset.name, qty: parseInt(input.value || '0', 10) }))
+        .filter(item => item.qty > 0);
+
+      if (sortByQuantity) rows.sort((a, b) => b.qty - a.qty || a.name.localeCompare(b.name));
+
+      summaryList.innerHTML = rows.length
+        ? rows.map(item => `<div class="summary-item"><span>${item.name}</span><strong>x${item.qty}</strong></div>`).join('')
+        : '<div class="empty">Aún no hay materiales añadidos.</div>';
+
+      totalQty.textContent = rows.reduce((sum, item) => sum + item.qty, 0);
+      filledCount.textContent = rows.length;
+    }
+
+
+
+    function getRows() {
+      return [...document.querySelectorAll('.qty')]
+        .map(input => ({ name: input.dataset.name, qty: parseInt(input.value || '0', 10) }))
+        .filter(item => item.qty > 0)
+        .sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    function buildReport() {
+      const nickname = document.getElementById('nickname').value.trim() || 'Sin nick';
+      const level = document.getElementById('level').value.trim() || '-';
+      const role = document.getElementById('clanRole').value.trim() || '-';
+      const recipes = document.getElementById('recipes').value.trim();
+      const drops = document.getElementById('drops').value.trim();
+      const rows = getRows();
+      const total = rows.reduce((sum, item) => sum + item.qty, 0);
+      const date = new Date().toLocaleDateString('es-ES');
+
+      let text = `🛡️ CLAN MATS REPORT - ${date}\n`;
+      text += `Nick: ${nickname} | Level: ${level} | Class/Role: ${role}\n`;
+      text += `Total: ${total} unidades | Tipos de mats: ${rows.length}\n`;
+      text += `--------------------------------\n`;
+      text += rows.length ? rows.map(item => `${item.name}: x${item.qty}`).join('\n') : 'Sin materiales registrados';
+      if (recipes) text += `\n\n📜 Recipes:\n${recipes}`;
+      if (drops) text += `\n\n💎 Drops / Spoils:\n${drops}`;
+      return text;
+    }
+
+    function generateReport() {
+      exportOutput.value = buildReport();
+      copyStatus.textContent = '';
+    }
+
+    async function copyReport() {
+      if (!exportOutput.value.trim()) generateReport();
+      exportOutput.select();
+      try {
+        await navigator.clipboard.writeText(exportOutput.value);
+        copyStatus.textContent = 'Informe copiado. Ya se puede pegar en Discord o WhatsApp.';
+      } catch (e) {
+        document.execCommand('copy');
+        copyStatus.textContent = 'Informe seleccionado/copìado. Si no se copió, pulsa Ctrl+C.';
+      }
+    }
+
+    function renderCompactView() {
+      const nickname = document.getElementById('nickname').value.trim() || 'Sin nick';
+      const level = document.getElementById('level').value.trim() || '-';
+      const role = document.getElementById('clanRole').value.trim() || '-';
+      const recipes = document.getElementById('recipes').value.trim();
+      const drops = document.getElementById('drops').value.trim();
+      const rows = getRows();
+      const total = rows.reduce((sum, item) => sum + item.qty, 0);
+
+      compactInfo.innerHTML = `<p><strong>Nick:</strong> ${nickname} · <strong>Level:</strong> ${level} · <strong>Role:</strong> ${role} · <strong>Total:</strong> ${total}</p>`;
+      compactGrid.innerHTML = rows.length
+        ? rows.map(item => `<div class="compact-line"><span>${item.name}</span><strong>x${item.qty}</strong></div>`).join('')
+        : '<p>Sin materiales registrados.</p>';
+      compactNotes.innerHTML = `${recipes ? `<p><strong>Recipes:</strong><br>${recipes.replace(/\n/g, '<br>')}</p>` : ''}${drops ? `<p><strong>Drops:</strong><br>${drops.replace(/\n/g, '<br>')}</p>` : ''}`;
+      document.body.classList.add('print-mode');
+      window.scrollTo(0, 0);
+    }
+
+    function setWeekLabel() {
+      const now = new Date();
+      const monday = new Date(now);
+      const day = monday.getDay() || 7;
+      monday.setDate(monday.getDate() - day + 1);
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      const opts = { day: '2-digit', month: 'short' };
+      document.getElementById('weekLabel').textContent = `${monday.toLocaleDateString('es-ES', opts)} - ${sunday.toLocaleDateString('es-ES', opts)}`;
+    }
+
+    materials.forEach((mat, index) => grid.appendChild(createCard(mat, index)));
+    setWeekLabel();
+
+    resetBtn.addEventListener('click', () => {
+      document.querySelectorAll('.qty').forEach(input => input.value = 0);
+      refreshSummary();
+    });
+
+    sortBtn.addEventListener('click', () => {
+      sortByQuantity = !sortByQuantity;
+      sortBtn.textContent = sortByQuantity ? 'Orden original' : 'Ordenar por cantidad';
+      refreshSummary();
+    });
+
+    generateReportBtn.addEventListener('click', generateReport);
+    copyReportBtn.addEventListener('click', copyReport);
+    compactViewBtn.addEventListener('click', renderCompactView);
+    backAppBtn.addEventListener('click', () => document.body.classList.remove('print-mode'));
+
+  </script>
+</body>
+</html>
