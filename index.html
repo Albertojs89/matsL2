@@ -674,24 +674,28 @@
     }
 
     function buildReport() {
-      const nickname = document.getElementById('nickname').value.trim() || 'Sin nick';
-      const level = document.getElementById('level').value.trim() || '-';
-      const role = document.getElementById('clanRole').value.trim() || '-';
-      const recipes = document.getElementById('recipes').value.trim();
-      const drops = document.getElementById('drops').value.trim();
-      const rows = getRows();
-      const total = rows.reduce((sum, item) => sum + item.qty, 0);
-      const date = new Date().toLocaleDateString('es-ES');
+  const nickname = document.getElementById('nickname').value.trim() || 'Sin nick';
+  const level = document.getElementById('level').value.trim() || '-';
+  const role = document.getElementById('clanRole').value.trim() || '-';
+  const recipes = document.getElementById('recipes').value.trim() || 'Sin recipes registradas';
+  const drops = document.getElementById('drops').value.trim() || 'Sin drops registrados';
+  const rows = getRows();
+  const total = rows.reduce((sum, item) => sum + item.qty, 0);
+  const date = new Date().toLocaleDateString('es-ES');
 
-      let text = `🛡️ CLAN MATS REPORT - ${date}\n`;
-      text += `Nick: ${nickname} | Level: ${level} | Class/Role: ${role}\n`;
-      text += `Total: ${total} unidades | Tipos de mats: ${rows.length}\n`;
-      text += `--------------------------------\n`;
-      text += rows.length ? rows.map(item => `${item.name}: x${item.qty}`).join('\n') : 'Sin materiales registrados';
-      if (recipes) text += `\n\n📜 Recipes:\n${recipes}`;
-      if (drops) text += `\n\n💎 Drops / Spoils:\n${drops}`;
-      return text;
-    }
+  let text = `🛡️ CLAN MATS REPORT - ${date}\n`;
+  text += `Nick: ${nickname} | Level: ${level} | Class/Role: ${role}\n`;
+  text += `Total: ${total} unidades | Tipos de mats: ${rows.length}\n`;
+  text += `--------------------------------\n`;
+  text += rows.length 
+    ? rows.map(item => `${item.name}: x${item.qty}`).join('\n') 
+    : 'Sin materiales registrados';
+
+  text += `\n\n📜 Recipes:\n${recipes}`;
+  text += `\n\n💎 Drops / Spoils:\n${drops}`;
+
+  return text;
+}
 
     function generateReport() {
       exportOutput.value = buildReport();
