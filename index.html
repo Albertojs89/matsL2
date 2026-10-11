@@ -18,7 +18,9 @@
         image        ruta de la imagen del ítem (PNG con fondo transparente)
         character    nombre del personaje destinatario
         progress     porcentaje 0–100
-        aura         color del brillo (opcional, cualquier color CSS)
+        aura         color del brillo y de la barra (opcional, cualquier color CSS)
+        startDate    fecha de inicio del objetivo (opcional): "2026-10-01" o "01/10/2026".
+                     Muestra la fecha y los días que lleva en marcha.
         message      (opcional) texto libre para el panel de abajo. Si lo pones,
                      se muestra en vez de la lista y de la imagen.
         panelTitle   (opcional) título del panel. Por defecto "Materiales necesarios"
@@ -40,9 +42,11 @@
   --bg-bottom:#34353b;
   --text:#ffffff;
   --text-soft:rgba(255,255,255,.72);
-  --bar-track:#86aee0;
-  --bar-fill-a:#3f78cf;
-  --bar-fill-b:#5b9bef;
+  --gold:#e8b86d;
+  /* la barra toma el color del aura de cada objetivo */
+  --bar-track:color-mix(in srgb,var(--aura) 42%,#d9e3f2);
+  --bar-fill-a:color-mix(in srgb,var(--aura) 72%,#000);
+  --bar-fill-b:var(--aura);
   --panel:#1b0e0e;
   --panel-line:rgba(255,255,255,.06);
   --aura:#6aa8ff;           /* color por defecto del brillo del ítem */
@@ -71,6 +75,7 @@ body{
 }
 
 .card{
+  position:relative;z-index:1;
   width:100%;max-width:var(--card-width);
   min-height:100%;
   padding:clamp(28px,7vh,72px) 20px 48px;
@@ -79,7 +84,18 @@ body{
 
 /* ——— Visor con flechas ——— */
 .viewer{position:relative;width:100%}
-.slide{display:flex;flex-direction:column;align-items:center;will-change:transform,opacity}
+.slide{position:relative;display:flex;flex-direction:column;align-items:center;will-change:transform,opacity}
+
+/* resplandor ambiental detrás del ítem */
+.halo{
+  position:absolute;left:50%;top:-40px;width:min(980px,170vw);height:560px;
+  transform:translateX(-50%);pointer-events:none;z-index:-1;
+  background:radial-gradient(ellipse at 50% 38%,color-mix(in srgb,var(--aura) 22%,transparent),transparent 62%);
+}
+/* estrellas tenues del fondo */
+.stars{position:fixed;inset:0;z-index:0;pointer-events:none}
+.stars span{position:absolute;border-radius:50%;background:#fff;opacity:.06;animation:twinkle ease-in-out infinite}
+@keyframes twinkle{0%,100%{opacity:.05}50%{opacity:.5}}
 
 .arrow{
   position:absolute;top:calc(var(--item-size) / 2 - 8px);
@@ -136,6 +152,18 @@ body{
 .item-stage.broken .item-img{display:none}
 .item-stage.broken .item-fallback{display:grid}
 
+/* sombra en el suelo: se encoge cuando el ítem sube */
+.floor-shadow{
+  position:absolute;left:27%;bottom:-2px;width:46%;height:16px;border-radius:50%;
+  background:radial-gradient(ellipse,rgba(0,0,0,.55),transparent 70%);
+  filter:blur(4px);
+  animation:floor var(--float-time) ease-in-out infinite;
+}
+@keyframes floor{
+  0%,100%{transform:scale(.78);opacity:.45}
+  50%{transform:scale(1.05);opacity:.8}
+}
+
 /* destellos que suben alrededor del ítem */
 .sparks{position:absolute;inset:0;pointer-events:none;overflow:visible}
 .spark{
@@ -165,17 +193,40 @@ body{
 
 /* ——— Textos ——— */
 .item-name{
-  font-size:clamp(24px,5.5vw,32px);font-weight:400;letter-spacing:.02em;
+  font-size:clamp(24px,5.5vw,32px);font-weight:400;letter-spacing:.07em;
   text-transform:uppercase;text-align:center;margin-bottom:26px;
+  text-shadow:0 0 28px color-mix(in srgb,var(--aura) 60%,transparent),0 2px 10px rgba(0,0,0,.4);
 }
 .character{font-size:19px;font-weight:400;margin-top:22px;text-align:center;color:var(--text)}
+.meta{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:14px}
+.meta[hidden]{display:none}
+.chip{
+  display:inline-flex;align-items:center;gap:7px;padding:6px 13px;border-radius:999px;
+  font-size:13px;color:var(--text-soft);
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+}
+.chip svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.chip.days{
+  color:var(--gold);
+  background:color-mix(in srgb,var(--gold) 9%,transparent);
+  border-color:color-mix(in srgb,var(--gold) 30%,transparent);
+}
 
 /* ——— Barra de progreso con efecto agua ——— */
 .bar{
   position:relative;width:var(--bar-width);height:var(--bar-height);
   border-radius:999px;background:var(--bar-track);
   overflow:hidden;
-  box-shadow:inset 0 2px 6px rgba(0,0,0,.25);
+  border:1px solid rgba(255,255,255,.28);
+  box-shadow:inset 0 2px 6px rgba(0,0,0,.25),0 8px 24px color-mix(in srgb,var(--aura) 22%,transparent);
+}
+.bar::after{ /* brillo de cristal */
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.38),rgba(255,255,255,0) 52%);
+}
+.tip{ /* borde luminoso del agua */
+  position:absolute;right:0;top:0;bottom:0;width:22px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.6));
 }
 .bar-fill{
   position:absolute;left:0;top:0;bottom:0;width:0;
@@ -212,7 +263,7 @@ body{
   position:absolute;inset:0;display:grid;place-items:center;
   font-size:14px;font-weight:500;letter-spacing:.02em;
   text-shadow:0 1px 3px rgba(0,0,0,.35);
-  pointer-events:none;
+  pointer-events:none;z-index:2;
 }
 @keyframes wave{to{background-position-x:90px}}
 @keyframes sheen{0%{transform:translateX(-100%)}60%,100%{transform:translateX(100%)}}
@@ -225,10 +276,11 @@ body{
 /* ——— Panel de materiales ——— */
 .materials{
   width:min(480px,86%);margin-top:56px;
-  background:var(--panel);
-  border:1px solid var(--panel-line);
+  background:linear-gradient(180deg,#241313,#170b0b);
+  border:1px solid color-mix(in srgb,var(--gold) 16%,transparent);
   border-radius:28px;
   padding:26px 28px 28px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 22px 44px rgba(0,0,0,.38);
 }
 .materials h2{font-size:16px;font-weight:500;color:var(--text-soft);margin-bottom:16px;letter-spacing:.01em}
 .mat-list{list-style:none;display:grid;gap:2px}
@@ -238,6 +290,8 @@ body{
   font-size:17px;
 }
 .mat-list li:last-child{border-bottom:0}
+.mat-name::before{content:"";display:inline-block;width:6px;height:6px;margin-right:12px;vertical-align:middle;
+  background:var(--gold);opacity:.55;transform:rotate(45deg)}
 .mat-qty{font-variant-numeric:tabular-nums;color:#e8b86d;font-weight:500}
 .mat-image{display:block;width:100%;height:auto;border-radius:16px}
 .mat-empty{color:var(--text-soft);font-size:15px}
@@ -263,13 +317,16 @@ body{
 </head>
 
 <body>
+<div class="stars" id="stars" aria-hidden="true"></div>
 <main class="card">
   <div class="viewer" id="viewer">
     <button class="arrow prev" id="prev" aria-label="Objetivo anterior"></button>
     <button class="arrow next" id="next" aria-label="Objetivo siguiente"></button>
 
     <div class="slide" id="slide" aria-live="polite">
+      <div class="halo"></div>
       <div class="item-stage" id="itemStage">
+        <div class="floor-shadow"></div>
         <div class="aura"></div>
         <div class="sparks" id="sparks"></div>
         <div class="float">
@@ -285,11 +342,13 @@ body{
           <div class="wave"></div>
           <div class="wave two"></div>
           <div id="bubbles"></div>
+          <div class="tip"></div>
         </div>
         <div class="bar-label" id="barLabel">0%</div>
       </div>
 
       <p class="character" id="character"></p>
+      <div class="meta" id="meta"></div>
     </div>
   </div>
 
@@ -312,9 +371,10 @@ const TARGETS = [
     item: "Bow of Peril",
     image: "peril.png",     // PNG con fondo transparente
     character: "Pupita",
+    startDate: "2026-10-11",            // fecha de inicio: "2026-10-01" o "01/10/2026"
     progress: 90,                       // 0 a 100
-    aura: "#6aa8ff",                    // color del brillo (opcional)
-    message: "5 keys y Enrias",                      // texto libre en vez de lista. Ej: "Ya tenemos todo, falta craftear"
+    aura: "#6aa8ff",                    // color del brillo y de la barra (opcional)
+    message: "5 keys y Enrias",         // texto libre en vez de lista. Ej: "Ya tenemos todo, falta craftear"
     materials: [                        // [id del catálogo, cantidad]
       ["adamantite", 24],
       ["mithril", 18],
@@ -328,6 +388,7 @@ const TARGETS = [
     item: "Black Ore",
     image: "bo.png",
     character: "Glasy",
+    startDate: "2026-10-11",
     progress: 85,
     aura: "#ff9d5c",
     message: null,
@@ -383,7 +444,8 @@ const ARROWS = { left: null, right: null };
 /* 4) Opciones */
 const OPTIONS = {
   autoRotateSeconds: 0,   // 0 = desactivado; ej. 8 = cambia solo cada 8 s
-  transitionMs: 280       // velocidad del cambio entre objetivos
+  transitionMs: 280,      // velocidad del cambio entre objetivos
+  showDays: false          // true = junto a la fecha muestra los días que lleva
 };
 
 /* ══════════════════════════════════════════════════════════════════
@@ -447,6 +509,51 @@ if(TARGETS.length < 2){
   $("prev").classList.add("hidden"); $("next").classList.add("hidden"); dots.style.display = "none";
 }
 
+/* estrellas tenues del fondo */
+(function makeStars(){
+  const box = $("stars");
+  for(let i = 0; i < 46; i++){
+    const s = document.createElement("span"), size = Math.random() < .2 ? 2.5 : 1.5;
+    s.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*100}%;width:${size}px;height:${size}px;` +
+      `animation-delay:${(Math.random()*6).toFixed(2)}s;animation-duration:${(3+Math.random()*4).toFixed(2)}s`;
+    box.appendChild(s);
+  }
+})();
+
+/* fecha de inicio: acepta "2026-10-01" o "01/10/2026" */
+function parseDate(v){
+  if(!v) return null;
+  v = String(v).trim();
+  let m, y, mo, d;
+  if((m = v.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/))){ y = +m[1]; mo = +m[2]; d = +m[3]; }
+  else if((m = v.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/))){ d = +m[1]; mo = +m[2]; y = +m[3]; }
+  else return null;
+  const dt = new Date(y, mo - 1, d);
+  return isNaN(dt) ? null : dt;
+}
+const fmtDate = new Intl.DateTimeFormat("es-ES", {day:"numeric", month:"short", year:"numeric"});
+const CAL_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2.5v3M17 2.5v3M3.5 9.5h17M5 4.5h14A1.5 1.5 0 0 1 20.5 6v13a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 19V6A1.5 1.5 0 0 1 5 4.5Z"/></svg>';
+
+function renderMeta(t){
+  const box = $("meta"); box.textContent = "";
+  const start = parseDate(t.startDate);
+  if(!start){ box.hidden = true; return; }
+  box.hidden = false;
+  const c1 = document.createElement("span"); c1.className = "chip";
+  c1.innerHTML = CAL_ICON;
+  const txt = document.createElement("span"); txt.textContent = "Inicio " + fmtDate.format(start);
+  c1.appendChild(txt); box.appendChild(c1);
+  if(OPTIONS.showDays){
+    const now = new Date(), today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const diff = Math.round((today - start) / 864e5);
+    const c2 = document.createElement("span"); c2.className = "chip days";
+    c2.textContent = diff < 0 ? `En ${-diff} día${diff === -1 ? "" : "s"}`
+                   : diff === 0 ? "Hoy"
+                   : `${diff} día${diff === 1 ? "" : "s"}`;
+    box.appendChild(c2);
+  }
+}
+
 function renderMaterials(t){
   const body = $("matBody"); body.textContent = "";
   const title = $("matTitle");
@@ -469,7 +576,7 @@ function renderMaterials(t){
   const ul = document.createElement("ul"); ul.className = "mat-list";
   t.materials.forEach(([id, qty]) => {
     const li = document.createElement("li");
-    const name = document.createElement("span"); name.textContent = MATERIALS_CATALOG[id] || id;
+    const name = document.createElement("span"); name.className = "mat-name"; name.textContent = MATERIALS_CATALOG[id] || id;
     const q = document.createElement("span"); q.className = "mat-qty"; q.textContent = "x" + qty;
     li.append(name, q); ul.appendChild(li);
   });
@@ -501,6 +608,7 @@ function render(){
   $("itemName").textContent = t.item;
   $("character").textContent = t.character;
   renderMaterials(t);
+  renderMeta(t);
   setProgress(t.progress);
   [...dots.children].forEach((d, i) => d.setAttribute("aria-current", i === index));
 }
