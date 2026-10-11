@@ -1,774 +1,552 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Lineage II Clan Mats Control</title>
-  <style>
-    :root {
-      --bg: #08090d;
-      --panel: rgba(18, 19, 28, .86);
-      --panel-2: rgba(34, 29, 43, .82);
-      --gold: #d6b268;
-      --gold-soft: #f4d998;
-      --blue: #7db8ff;
-      --red: #ff6a6a;
-      --green: #8ff0a4;
-      --text: #f5efe2;
-      --muted: #b9ad98;
-      --line: rgba(214,178,104,.28);
-      --shadow: 0 18px 70px rgba(0,0,0,.55);
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: Georgia, 'Times New Roman', serif;
-      color: var(--text);
-      background:
-        radial-gradient(circle at 20% 10%, rgba(90, 65, 130, .35), transparent 28%),
-        radial-gradient(circle at 85% 15%, rgba(45, 98, 150, .32), transparent 30%),
-        radial-gradient(circle at 50% 100%, rgba(167, 111, 45, .22), transparent 38%),
-        linear-gradient(135deg, #050609 0%, #10111a 50%, #09080d 100%);
-      overflow-x: hidden;
-    }
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      background:
-        linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,.02) 1px, transparent 1px);
-      background-size: 44px 44px;
-      mask-image: radial-gradient(circle, black, transparent 78%);
-      opacity: .45;
-    }
-    .app {
-      width: min(1380px, calc(100% - 28px));
-      margin: 24px auto 36px;
-      position: relative;
-      z-index: 1;
-    }
-    .hero {
-      padding: 28px;
-      border: 1px solid var(--line);
-      border-radius: 28px;
-      background: linear-gradient(145deg, rgba(27,29,43,.92), rgba(15,14,20,.78));
-      box-shadow: var(--shadow), inset 0 0 45px rgba(214,178,104,.06);
-      position: relative;
-      overflow: hidden;
-    }
-    .hero::after {
-      content: "ADEN CLAN VAULT";
-      position: absolute;
-      right: -20px;
-      top: 18px;
-      font-size: clamp(38px, 7vw, 100px);
-      color: rgba(214,178,104,.045);
-      letter-spacing: 10px;
-      font-weight: 700;
-      white-space: nowrap;
-    }
-    .title-row {
-      display: flex;
-      justify-content: space-between;
-      gap: 18px;
-      align-items: flex-start;
-      position: relative;
-      z-index: 2;
-    }
-    h1 {
-      margin: 0;
-      font-size: clamp(30px, 4vw, 58px);
-      line-height: .95;
-      color: var(--gold-soft);
-      text-shadow: 0 0 22px rgba(214,178,104,.25);
-      letter-spacing: 1px;
-    }
-    .subtitle {
-      margin: 12px 0 0;
-      color: var(--muted);
-      font-size: 16px;
-      max-width: 760px;
-    }
-    .badge {
-      border: 1px solid rgba(244,217,152,.45);
-      color: var(--gold-soft);
-      border-radius: 999px;
-      padding: 10px 16px;
-      background: rgba(0,0,0,.32);
-      box-shadow: inset 0 0 18px rgba(214,178,104,.08);
-      white-space: nowrap;
-    }
-    .player-card {
-      display: grid;
-      grid-template-columns: 1.5fr .7fr .7fr;
-      gap: 14px;
-      margin-top: 26px;
-      position: relative;
-      z-index: 2;
-    }
-    .field {
-      background: rgba(0,0,0,.34);
-      border: 1px solid rgba(214,178,104,.26);
-      border-radius: 18px;
-      padding: 12px 14px;
-    }
-    label {
-      display: block;
-      font-size: 12px;
-      letter-spacing: 1.4px;
-      text-transform: uppercase;
-      color: var(--gold);
-      margin-bottom: 7px;
-    }
-    input, textarea {
-      width: 100%;
-      border: 0;
-      outline: none;
-      background: transparent;
-      color: var(--text);
-      font: inherit;
-      font-size: 19px;
-    }
-    input::placeholder, textarea::placeholder { color: rgba(245,239,226,.38); }
-    textarea { min-height: 92px; resize: vertical; line-height: 1.45; }
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Objetivos del clan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 
-    /* ── SEARCH BAR ── */
-    .search-wrap {
-      padding: 16px 18px 0;
-      position: relative;
-    }
-    .search-input {
-      width: 100%;
-      background: rgba(0,0,0,.38);
-      border: 1px solid rgba(214,178,104,.3);
-      border-radius: 14px;
-      color: var(--text);
-      font: inherit;
-      font-size: 16px;
-      padding: 11px 44px 11px 16px;
-      outline: none;
-      transition: border-color .18s ease, box-shadow .18s ease;
-    }
-    .search-input:focus {
-      border-color: rgba(214,178,104,.7);
-      box-shadow: 0 0 0 3px rgba(214,178,104,.1);
-    }
-    .search-input::placeholder { color: rgba(245,239,226,.35); }
-    .search-icon {
-      position: absolute;
-      right: 30px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 20px;
-      color: rgba(214,178,104,.55);
-      pointer-events: none;
-      margin-top: 8px;
-    }
-    .search-clear {
-      position: absolute;
-      right: 30px;
-      top: 50%;
-      transform: translateY(-50%);
-      margin-top: 8px;
-      background: none;
-      border: none;
-      color: var(--muted);
-      font-size: 20px;
-      cursor: pointer;
-      padding: 0 4px;
-      display: none;
-      line-height: 1;
-    }
-    .search-clear:hover { color: var(--gold-soft); }
-    .search-meta {
-      font-size: 12px;
-      color: var(--muted);
-      margin-top: 7px;
-      padding: 0 4px;
-      min-height: 16px;
-    }
-    .no-results {
-      display: none;
-      padding: 32px 18px;
-      text-align: center;
-      color: var(--muted);
-      font-style: italic;
-      font-size: 15px;
-    }
-    /* ── end SEARCH BAR ── */
+<!--
+  ╔══════════════════════════════════════════════════════════════════╗
+  ║  CÓMO EDITAR ESTE ARCHIVO (todo lo que cambias está en 1 sitio)  ║
+  ╚══════════════════════════════════════════════════════════════════╝
+  1) Busca el bloque  "CONFIGURACIÓN"  dentro de <script> (más abajo).
+  2) TARGETS  → los objetivos (2 o 3 normalmente). Para cada uno:
+        item         nombre del ítem
+        image        ruta de la imagen del ítem (PNG con fondo transparente)
+        character    nombre del personaje destinatario
+        progress     porcentaje 0–100
+        aura         color del brillo (opcional, cualquier color CSS)
+        message      (opcional) texto libre para el panel de abajo. Si lo pones,
+                     se muestra en vez de la lista y de la imagen.
+        panelTitle   (opcional) título del panel. Por defecto "Materiales necesarios"
+                     (con message no se muestra título salvo que lo pongas).
+        materials    lista de materiales: [["id_material", cantidad], ...]
+        materialsImage  (opcional) ruta de una imagen con los materiales.
+                        Si la pones, se usa la imagen en vez de la lista.
+  3) MATERIALS_CATALOG → catálogo de materiales básicos. Añade los que quieras:
+        id_material: "Nombre que se verá"
+  4) ARROWS → si quieres tus flechas PNG blancas, pon aquí sus rutas.
+     Con null se usan unas flechas SVG blancas incluidas en este archivo.
+  5) Colores, tamaños y velocidades → variables CSS al principio de <style> (:root).
+-->
 
-    .layout {
-      display: grid;
-      grid-template-columns: 1fr 360px;
-      gap: 18px;
-      margin-top: 18px;
-    }
-    .panel {
-      border: 1px solid var(--line);
-      background: var(--panel);
-      border-radius: 26px;
-      box-shadow: var(--shadow);
-      overflow: hidden;
-    }
-    .panel-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      padding: 18px 20px;
-      border-bottom: 1px solid var(--line);
-      background: linear-gradient(90deg, rgba(214,178,104,.12), transparent);
-    }
-    .panel-head h2 { margin: 0; font-size: 22px; color: var(--gold-soft); }
-    .counter-total { color: var(--muted); font-size: 14px; }
-    .materials {
-      padding: 18px;
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(178px, 1fr));
-      gap: 14px;
-    }
-    .mat-card {
-      border: 1px solid rgba(214,178,104,.22);
-      border-radius: 20px;
-      background: linear-gradient(150deg, rgba(255,255,255,.045), rgba(255,255,255,.012));
-      padding: 13px;
-      min-height: 176px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      box-shadow: inset 0 0 22px rgba(0,0,0,.2);
-      transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
-    }
-    .mat-card.hidden { display: none; }
-    .mat-card.search-highlight {
-      border-color: rgba(214,178,104,.7);
-      box-shadow: 0 0 0 2px rgba(214,178,104,.18), inset 0 0 22px rgba(0,0,0,.2);
-    }
-    .mat-card:has(input:not([value="0"])) { border-color: rgba(143,240,164,.45); }
-    .mat-card:hover {
-      transform: translateY(-3px);
-      border-color: rgba(244,217,152,.55);
-      box-shadow: 0 12px 28px rgba(0,0,0,.28), inset 0 0 24px rgba(214,178,104,.06);
-    }
-    .mat-top { display: flex; gap: 11px; align-items: center; }
-    .mat-icon {
-      width: 54px; height: 54px; flex: 0 0 54px;
-      border-radius: 14px;
-      display: grid; place-items: center;
-      border: 1px solid rgba(244,217,152,.36);
-      background:
-        radial-gradient(circle at 35% 25%, rgba(255,255,255,.22), transparent 26%),
-        linear-gradient(145deg, #332a1d, #11131b);
-      box-shadow: inset 0 0 16px rgba(214,178,104,.15), 0 0 18px rgba(125,184,255,.08);
-      overflow: hidden;
-      cursor: pointer;
-    }
-    .mat-icon img { width: 100%; height: 100%; object-fit: cover; display: none; }
-    .mat-icon span { font-size: 23px; opacity: .9; }
-    .mat-name { font-size: 16px; line-height: 1.15; color: #fff5dc; }
-    .mat-type { margin-top: 5px; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .8px; }
-    .stepper {
-      display: grid;
-      grid-template-columns: 40px 1fr 40px;
-      gap: 8px;
-      align-items: center;
-      margin-top: 14px;
-    }
-    .btn {
-      border: 1px solid rgba(244,217,152,.32);
-      color: var(--gold-soft);
-      background: rgba(0,0,0,.38);
-      border-radius: 12px;
-      min-height: 40px;
-      font-size: 22px;
-      cursor: pointer;
-      transition: transform .12s ease, background .12s ease;
-    }
-    .btn:hover { transform: scale(1.04); background: rgba(214,178,104,.14); }
-    .btn.minus { color: #ffb0a7; }
-    .btn.plus { color: #b9ffc5; }
-    .qty {
-      text-align: center;
-      border: 1px solid rgba(214,178,104,.18);
-      border-radius: 12px;
-      min-height: 40px;
-      background: rgba(0,0,0,.28);
-      font-size: 20px;
-      font-weight: 700;
-      color: white;
-    }
-    .side { display: flex; flex-direction: column; gap: 18px; }
-    .summary-list {
-      padding: 16px 18px 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      max-height: 360px;
-      overflow: auto;
-    }
-    .summary-item {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      padding: 9px 10px;
-      border-radius: 13px;
-      background: rgba(255,255,255,.045);
-      border: 1px solid rgba(255,255,255,.055);
-    }
-    .summary-item strong { color: var(--gold-soft); }
-    .empty { color: var(--muted); font-style: italic; }
-    .notes { padding: 18px; }
-    .notes .field + .field { margin-top: 14px; }
-    .actions {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      padding: 0 18px 18px;
-    }
-    .action-btn {
-      border: 1px solid rgba(244,217,152,.34);
-      color: var(--text);
-      background: linear-gradient(145deg, rgba(214,178,104,.18), rgba(0,0,0,.32));
-      border-radius: 14px;
-      padding: 12px;
-      cursor: pointer;
-      font-weight: 700;
-      letter-spacing: .4px;
-    }
-    .action-btn.danger { border-color: rgba(255,106,106,.36); color: #ffd1cc; }
-    .capture-footer {
-      margin-top: 18px;
-      padding: 16px 20px;
-      text-align: center;
-      color: var(--muted);
-      border: 1px dashed rgba(214,178,104,.3);
-      border-radius: 20px;
-      background: rgba(0,0,0,.23);
-    }
-    @media (max-width: 980px) {
-      .layout, .player-card { grid-template-columns: 1fr; }
-      .title-row { flex-direction: column; }
-      .badge { white-space: normal; }
-    }
-    @media print {
-      body { background: #08090d; }
-      .actions, .capture-footer { display: none; }
-      .app { width: 100%; margin: 0; }
-      .panel, .hero { box-shadow: none; }
-    }
-    .export-card {
-      margin-top: 18px;
-      border: 1px solid rgba(125,184,255,.28);
-      border-radius: 22px;
-      padding: 16px;
-      background: linear-gradient(145deg, rgba(12,17,28,.92), rgba(31,25,39,.82));
-      box-shadow: inset 0 0 24px rgba(125,184,255,.05);
-    }
-    .export-card h3 { margin: 0 0 8px; color: var(--blue); font-size: 19px; }
-    .export-card p { margin: 0 0 14px; color: var(--muted); font-size: 14px; line-height: 1.45; }
-    .export-output {
-      width: 100%;
-      min-height: 210px;
-      resize: vertical;
-      border-radius: 16px;
-      border: 1px solid rgba(244,217,152,.24);
-      background: rgba(0,0,0,.36);
-      color: #f6eedc;
-      padding: 14px;
-      font-family: Consolas, monospace;
-      font-size: 13px;
-      line-height: 1.5;
-      outline: none;
-    }
-    .copy-status { min-height: 18px; color: var(--green); font-size: 13px; margin-top: 8px; }
-    .compact-sheet {
-      display: none;
-      margin-top: 18px;
-      border: 1px solid rgba(244,217,152,.36);
-      border-radius: 24px;
-      padding: 20px;
-      background: rgba(8,9,13,.94);
-    }
-    .compact-sheet h2 { margin: 0 0 12px; color: var(--gold-soft); }
-    .compact-grid { columns: 2; column-gap: 34px; font-size: 15px; }
-    .compact-line {
-      break-inside: avoid;
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
-      border-bottom: 1px solid rgba(255,255,255,.08);
-      padding: 5px 0;
-    }
-    body.print-mode .hero,
-    body.print-mode .layout,
-    body.print-mode .capture-footer { display: none; }
-    body.print-mode .compact-sheet { display: block; }
-  </style>
+<style>
+:root{
+  /* ——— Colores ——— */
+  --bg-top:#101b2b;
+  --bg-bottom:#34353b;
+  --text:#ffffff;
+  --text-soft:rgba(255,255,255,.72);
+  --bar-track:#86aee0;
+  --bar-fill-a:#3f78cf;
+  --bar-fill-b:#5b9bef;
+  --panel:#1b0e0e;
+  --panel-line:rgba(255,255,255,.06);
+  --aura:#6aa8ff;           /* color por defecto del brillo del ítem */
+
+  /* ——— Tamaños ——— */
+  --card-width:560px;
+  --item-size:240px;        /* alto/ancho máximo del ítem */
+  --bar-height:46px;
+  --bar-width:min(430px,80%);
+
+  /* ——— Animaciones ——— */
+  --float-time:5s;          /* subida/bajada del ítem */
+  --float-distance:10px;    /* cuánto flota */
+  --aura-time:3.6s;         /* pulso del brillo */
+  --wave-time:5s;           /* velocidad de la ola de la barra */
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  color:var(--text);
+  background:linear-gradient(180deg,var(--bg-top) 0%,#222836 55%,var(--bg-bottom) 100%) fixed;
+  display:flex;justify-content:center;
+  overflow-x:hidden;
+}
+
+.card{
+  width:100%;max-width:var(--card-width);
+  min-height:100%;
+  padding:clamp(28px,7vh,72px) 20px 48px;
+  display:flex;flex-direction:column;align-items:center;
+}
+
+/* ——— Visor con flechas ——— */
+.viewer{position:relative;width:100%}
+.slide{display:flex;flex-direction:column;align-items:center;will-change:transform,opacity}
+
+.arrow{
+  position:absolute;top:calc(var(--item-size) / 2 - 8px);
+  z-index:5;
+  width:44px;height:64px;transform:translateY(-50%);
+  background:none;border:0;cursor:pointer;color:#fff;
+  display:grid;place-items:center;
+  transition:transform .2s ease,opacity .2s ease;
+  opacity:.85;
+}
+.arrow:hover{opacity:1}
+.arrow.prev{left:0}
+.arrow.next{right:0}
+.arrow.prev:hover{transform:translateY(-50%) translateX(-4px)}
+.arrow.next:hover{transform:translateY(-50%) translateX(4px)}
+.arrow:focus-visible{outline:2px solid #fff;outline-offset:4px;border-radius:8px}
+.arrow svg,.arrow img{width:100%;height:100%;display:block;object-fit:contain}
+.arrow svg{fill:currentColor}
+.arrow.hidden{display:none}
+
+/* ——— Ítem flotante con aura ——— */
+.item-stage{
+  position:relative;
+  width:var(--item-size);height:var(--item-size);
+  display:grid;place-items:center;
+  margin-bottom:22px;
+}
+.aura{
+  position:absolute;inset:6%;border-radius:50%;
+  background:radial-gradient(circle,
+    color-mix(in srgb,var(--aura) 60%,transparent) 0%,
+    color-mix(in srgb,var(--aura) 22%,transparent) 42%,
+    transparent 70%);
+  filter:blur(14px);
+  animation:aura-pulse var(--aura-time) ease-in-out infinite;
+}
+.float{
+  position:relative;width:100%;height:100%;
+  display:grid;place-items:center;
+  animation:float var(--float-time) ease-in-out infinite;
+}
+.item-img{
+  max-width:92%;max-height:92%;object-fit:contain;
+  filter:drop-shadow(0 0 10px color-mix(in srgb,var(--aura) 70%,transparent))
+         drop-shadow(0 10px 14px rgba(0,0,0,.45));
+  animation:glow var(--aura-time) ease-in-out infinite;
+  user-select:none;-webkit-user-drag:none;
+}
+.item-fallback{
+  width:55%;aspect-ratio:1;border:2px dashed rgba(255,255,255,.35);border-radius:18px;
+  display:none;place-items:center;text-align:center;padding:10px;
+  font-size:12px;color:var(--text-soft);
+}
+.item-stage.broken .item-img{display:none}
+.item-stage.broken .item-fallback{display:grid}
+
+/* destellos que suben alrededor del ítem */
+.sparks{position:absolute;inset:0;pointer-events:none;overflow:visible}
+.spark{
+  position:absolute;bottom:18%;width:4px;height:4px;border-radius:50%;
+  background:#fff;opacity:0;
+  box-shadow:0 0 8px 2px color-mix(in srgb,var(--aura) 80%,#fff);
+  animation:spark 4.5s ease-in infinite;
+}
+
+@keyframes float{
+  0%,100%{transform:translateY(calc(var(--float-distance) * -1)) rotate(-.6deg)}
+  50%{transform:translateY(var(--float-distance)) rotate(.6deg)}
+}
+@keyframes aura-pulse{
+  0%,100%{transform:scale(.88);opacity:.65}
+  50%{transform:scale(1.08);opacity:1}
+}
+@keyframes glow{
+  0%,100%{filter:drop-shadow(0 0 6px color-mix(in srgb,var(--aura) 55%,transparent)) drop-shadow(0 10px 14px rgba(0,0,0,.45))}
+  50%{filter:drop-shadow(0 0 18px color-mix(in srgb,var(--aura) 95%,transparent)) drop-shadow(0 10px 14px rgba(0,0,0,.45))}
+}
+@keyframes spark{
+  0%{transform:translateY(0) scale(.4);opacity:0}
+  15%{opacity:.9}
+  100%{transform:translateY(-150px) scale(1);opacity:0}
+}
+
+/* ——— Textos ——— */
+.item-name{
+  font-size:clamp(24px,5.5vw,32px);font-weight:400;letter-spacing:.02em;
+  text-transform:uppercase;text-align:center;margin-bottom:26px;
+}
+.character{font-size:19px;font-weight:400;margin-top:22px;text-align:center;color:var(--text)}
+
+/* ——— Barra de progreso con efecto agua ——— */
+.bar{
+  position:relative;width:var(--bar-width);height:var(--bar-height);
+  border-radius:999px;background:var(--bar-track);
+  overflow:hidden;
+  box-shadow:inset 0 2px 6px rgba(0,0,0,.25);
+}
+.bar-fill{
+  position:absolute;left:0;top:0;bottom:0;width:0;
+  border-radius:999px;
+  background:linear-gradient(180deg,var(--bar-fill-b),var(--bar-fill-a));
+  overflow:hidden;
+  transition:width 1.6s cubic-bezier(.22,.8,.25,1);
+}
+.wave{
+  position:absolute;left:0;right:0;top:-2px;height:60%;
+  background-repeat:repeat-x;background-size:90px 100%;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 90 20' preserveAspectRatio='none'><path d='M0 10 Q22.5 0 45 10 T90 10 V20 H0Z' fill='white'/></svg>");
+  opacity:.28;
+  animation:wave var(--wave-time) linear infinite;
+}
+.wave.two{
+  top:auto;bottom:-2px;height:55%;
+  transform:scaleY(-1);
+  opacity:.18;background-size:70px 100%;
+  animation-duration:calc(var(--wave-time) * 1.4);animation-direction:reverse;
+}
+.bar-fill::after{ /* brillo que recorre la barra */
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.32) 50%,transparent 70%);
+  transform:translateX(-100%);
+  animation:sheen 3.8s ease-in-out infinite;
+}
+.bubble{
+  position:absolute;bottom:-8px;border-radius:50%;
+  background:rgba(255,255,255,.45);
+  animation:bubble linear infinite;
+}
+.bar-label{
+  position:absolute;inset:0;display:grid;place-items:center;
+  font-size:14px;font-weight:500;letter-spacing:.02em;
+  text-shadow:0 1px 3px rgba(0,0,0,.35);
+  pointer-events:none;
+}
+@keyframes wave{to{background-position-x:90px}}
+@keyframes sheen{0%{transform:translateX(-100%)}60%,100%{transform:translateX(100%)}}
+@keyframes bubble{
+  0%{transform:translateY(0);opacity:0}
+  15%{opacity:.8}
+  100%{transform:translateY(-52px);opacity:0}
+}
+
+/* ——— Panel de materiales ——— */
+.materials{
+  width:min(480px,86%);margin-top:56px;
+  background:var(--panel);
+  border:1px solid var(--panel-line);
+  border-radius:28px;
+  padding:26px 28px 28px;
+}
+.materials h2{font-size:16px;font-weight:500;color:var(--text-soft);margin-bottom:16px;letter-spacing:.01em}
+.mat-list{list-style:none;display:grid;gap:2px}
+.mat-list li{
+  display:flex;justify-content:space-between;gap:16px;
+  padding:9px 0;border-bottom:1px solid var(--panel-line);
+  font-size:17px;
+}
+.mat-list li:last-child{border-bottom:0}
+.mat-qty{font-variant-numeric:tabular-nums;color:#e8b86d;font-weight:500}
+.mat-image{display:block;width:100%;height:auto;border-radius:16px}
+.mat-empty{color:var(--text-soft);font-size:15px}
+.mat-message{font-size:18px;line-height:1.5;text-align:center;white-space:pre-line}
+
+/* ——— Puntos de navegación ——— */
+.dots{display:flex;gap:10px;margin-top:34px}
+.dots button{
+  width:9px;height:9px;border-radius:50%;border:0;cursor:pointer;
+  background:rgba(255,255,255,.28);transition:background .2s,transform .2s;
+}
+.dots button[aria-current="true"]{background:#fff;transform:scale(1.25)}
+.dots button:focus-visible{outline:2px solid #fff;outline-offset:3px}
+
+@media (max-width:480px){
+  :root{--item-size:200px}
+  .arrow{width:34px;height:52px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+</style>
 </head>
+
 <body>
-  <main class="app">
-    <section class="hero">
-      <div class="title-row">
-        <div>
-          <h1>Lineage II<br>Clan Mats Control</h1>
-          <p class="subtitle">Registro visual semanal para aportes de clan. Rellena nickname, level, materiales, recipes y drops. Después haz captura de pantalla.</p>
-        </div>
-        <div class="badge" id="weekLabel">Weekly Collection</div>
-      </div>
-      <div class="player-card">
-        <div class="field">
-          <label for="nickname">Nickname</label>
-          <input id="nickname" placeholder="Ej. DwarfCrafter" />
-        </div>
-        <div class="field">
-          <label for="level">Level</label>
-          <input id="level" type="number" min="1" max="80" placeholder="76" />
-        </div>
-        <div class="field">
-          <label for="clanRole">Role / Class</label>
-          <input id="clanRole" placeholder="Spoiler / Crafter" />
+<main class="card">
+  <div class="viewer" id="viewer">
+    <button class="arrow prev" id="prev" aria-label="Objetivo anterior"></button>
+    <button class="arrow next" id="next" aria-label="Objetivo siguiente"></button>
+
+    <div class="slide" id="slide" aria-live="polite">
+      <div class="item-stage" id="itemStage">
+        <div class="aura"></div>
+        <div class="sparks" id="sparks"></div>
+        <div class="float">
+          <img class="item-img" id="itemImg" alt="">
+          <div class="item-fallback" id="itemFallback">Falta la imagen del ítem</div>
         </div>
       </div>
-    </section>
 
-    <section class="layout">
-      <div class="panel">
-        <div class="panel-head">
-          <h2>Materials</h2>
-          <div class="counter-total">Total unidades: <strong id="totalQty">0</strong></div>
+      <h1 class="item-name" id="itemName"></h1>
+
+      <div class="bar" id="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+        <div class="bar-fill" id="barFill">
+          <div class="wave"></div>
+          <div class="wave two"></div>
+          <div id="bubbles"></div>
         </div>
-
-        <!-- ── BUSCADOR ── -->
-        <div class="search-wrap">
-          <input
-            type="search"
-            id="matSearch"
-            class="search-input"
-            placeholder="Buscar material… ej. Mithril, Leather, Mold…"
-            autocomplete="off"
-            spellcheck="false"
-          />
-          <span class="search-icon" id="searchIcon" aria-hidden="true">🔍</span>
-          <button class="search-clear" id="searchClear" aria-label="Limpiar búsqueda">✕</button>
-          <div class="search-meta" id="searchMeta"></div>
-        </div>
-        <div class="no-results" id="noResults">No se encontró ningún material con ese nombre.</div>
-        <!-- ── fin BUSCADOR ── -->
-
-        <div class="materials" id="materialsGrid"></div>
+        <div class="bar-label" id="barLabel">0%</div>
       </div>
 
-      <aside class="side">
-        <div class="panel">
-          <div class="panel-head">
-            <h2>Resumen captura</h2>
-            <div class="counter-total"><strong id="filledCount">0</strong> mats</div>
-          </div>
-          <div class="summary-list" id="summaryList">
-            <div class="empty">Aún no hay materiales añadidos.</div>
-          </div>
-          <div class="actions">
-            <button class="action-btn" id="sortBtn" type="button">Ordenar por cantidad</button>
-            <button class="action-btn danger" id="resetBtn" type="button">Reset</button>
-          </div>
+      <p class="character" id="character"></p>
+    </div>
+  </div>
 
-          <div class="export-card">
-            <h3>Informe para el reclutador</h3>
-            <p>Genera un resumen limpio para copiar en Discord/WhatsApp/foro. Es más fiable que una captura larga.</p>
-            <textarea id="exportOutput" class="export-output" readonly placeholder="Aquí aparecerá el informe..."></textarea>
-            <div class="actions">
-              <button class="action-btn" id="generateReportBtn" type="button">Generar informe</button>
-              <button class="action-btn" id="copyReportBtn" type="button">Copiar informe</button>
-              <button class="action-btn" id="compactViewBtn" type="button">Vista captura limpia</button>
-            </div>
-            <div class="copy-status" id="copyStatus"></div>
-          </div>
-        </div>
+  <section class="materials" aria-labelledby="matTitle">
+    <h2 id="matTitle">Materiales necesarios</h2>
+    <div id="matBody"></div>
+  </section>
 
-        <div class="panel">
-          <div class="panel-head"><h2>Recipes & Drops</h2></div>
-          <div class="notes">
-            <div class="field">
-              <label for="recipes">Recipes</label>
-              <textarea id="recipes" placeholder="Ej. Recipe: Tallum Plate Armor 60%, Recipe: Draconic Bow..."></textarea>
-            </div>
-            <div class="field">
-              <label for="drops">Drops / Spoils relevantes</label>
-              <textarea id="drops" placeholder="Ej. EWA x1, SOP x3, Mold Glue x2..."></textarea>
-            </div>
-          </div>
-        </div>
-      </aside>
-    </section>
+  <nav class="dots" id="dots" aria-label="Objetivos"></nav>
+</main>
 
-    <section class="compact-sheet" id="compactSheet">
-      <h2>Clan Mats Report</h2>
-      <div id="compactInfo"></div>
-      <div class="compact-grid" id="compactGrid"></div>
-      <div id="compactNotes"></div>
-      <div class="actions" style="margin-top:18px;">
-        <button class="action-btn" id="backAppBtn" type="button">Volver</button>
-      </div>
-    </section>
+<script>
+/* ══════════════════════════════════════════════════════════════════
+   CONFIGURACIÓN  ←  TODO LO QUE TIENES QUE EDITAR ESTÁ AQUÍ
+   ══════════════════════════════════════════════════════════════════ */
 
-    <div class="capture-footer">Consejo: para informar al reclutador, usa "Generar informe" y copia el texto. Para captura, usa "Vista captura limpia".</div>
-  </main>
+/* 1) Objetivos (normalmente 2 o 3) */
+const TARGETS = [
+  {
+    item: "Bow of Peril",
+    image: "peril.png",     // PNG con fondo transparente
+    character: "Pupita",
+    progress: 90,                       // 0 a 100
+    aura: "#6aa8ff",                    // color del brillo (opcional)
+    message: "5 keys y Enrias",                      // texto libre en vez de lista. Ej: "Ya tenemos todo, falta craftear"
+    materials: [                        // [id del catálogo, cantidad]
+      ["adamantite", 24],
+      ["mithril", 18],
+      ["oriharukon", 12],
+      ["crafted_leather", 40],
+      ["varnish", 30]
+    ],
+    materialsImage: null                // ej: "img/materiales-bow.png"  (si lo pones, sustituye a la lista)
+  },
+  {
+    item: "Black Ore",
+    image: "bo.png",
+    character: "Glasy",
+    progress: 85,
+    aura: "#ff9d5c",
+    message: null,
+    materials: [
+      ["mithril", 30],
+      ["steel", 50],
+      ["thread", 60],
+      ["stem", 25]
+    ],
+    materialsImage: null
+  }
+];
 
-  <script>
-    const materials = [
-      { name: 'Stem', type: 'Base', icon: '🌿' },
-      { name: 'Animal Bone', type: 'Base', icon: '🦴' },
-      { name: 'Animal Skin', type: 'Base', icon: '🐾' },
-      { name: 'Thread', type: 'Base', icon: '🧵' },
-      { name: 'Suede', type: 'Base', icon: '🟫' },
-      { name: 'Iron Ore', type: 'Ore', icon: '⛏️' },
-      { name: 'Coal', type: 'Ore', icon: '⚫' },
-      { name: 'Charcoal', type: 'Ore', icon: '🔥' },
-      { name: 'Silver Nugget', type: 'Ore', icon: '◇' },
-      { name: 'Mithril Ore', type: 'Ore', icon: '💠' },
-      { name: 'Oriharukon Ore', type: 'Ore', icon: '🔷' },
-      { name: 'Adamantite Nugget', type: 'Ore', icon: '🔶' },
-      { name: 'Stone of Purity', type: 'Rare', icon: '✨' },
-      { name: 'Braided Hemp', type: 'Crafted', icon: '〰️' },
-      { name: 'Coarse Bone Powder', type: 'Crafted', icon: '⚱️' },
-      { name: 'Cokes', type: 'Crafted', icon: '⬛' },
-      { name: 'Leather', type: 'Crafted', icon: '📜' },
-      { name: 'Steel', type: 'Crafted', icon: '⚙️' },
-      { name: 'Cord', type: 'Crafted', icon: '➰' },
-      { name: 'High-Grade Suede', type: 'Crafted', icon: '🟤' },
-      { name: 'Crafted Leather', type: 'Crafted', icon: '🛡️' },
-      { name: 'Metallic Thread', type: 'Crafted', icon: '🪡' },
-      { name: 'Metallic Fiber', type: 'Crafted', icon: '🕸️' },
-      { name: 'Durable Metal Plate', type: 'Crafted', icon: '▣' },
-      { name: 'Metal Hardener', type: 'Crafted', icon: '🔩' },
-      { name: 'Compound Braid', type: 'Crafted', icon: '🪢' },
-      { name: 'Synthetic Cokes', type: 'Crafted', icon: '◼️' },
-      { name: 'Varnish', type: 'Base', icon: '🧪' },
-      { name: 'Varnish of Purity', type: 'Crafted', icon: '💧' },
-      { name: 'Mithril Alloy', type: 'Crafted', icon: '🔹' },
-      { name: 'Oriharukon', type: 'Crafted', icon: '💎' },
-      { name: 'Mold Glue', type: 'Mold', icon: '🧴' },
-      { name: 'Mold Hardener', type: 'Mold', icon: '🧱' },
-      { name: 'Mold Lubricant', type: 'Mold', icon: '🛢️' },
-      { name: 'Enria', type: 'Rare', icon: '🔴' },
-      { name: 'Asofe', type: 'Rare', icon: '🟣' },
-      { name: 'Thons', type: 'Rare', icon: '🟡' },
-      { name: 'Steel Mold', type: 'Mold', icon: '🏗️' },
-      { name: 'Silver Mold', type: 'Mold', icon: '🏛️' },
-      { name: "Artisan's Frame", type: 'Frame', icon: '🧰' },
-      { name: "Blacksmith's Frame", type: 'Frame', icon: '⚒️' },
-      { name: "Maestro Mold", type: 'Mold', icon: '👑' },
-      { name: "Maestro Holder", type: 'Mold', icon: '🏺' },
-      { name: "Maestro Anvil Lock", type: 'Mold', icon: '🔐' },
-      { name: "Warsmith's Mold", type: 'Mold', icon: '🗜️' },
-      { name: "Warsmith's Holder", type: 'Mold', icon: '📦' },
-      { name: "Craftsman Mold", type: 'Mold', icon: '🧲' },
-      { name: "Arcsmith's Anvil", type: 'Mold', icon: '⚒️' }
-    ];
+/* 2) Catálogo de materiales básicos (id → nombre que se muestra).
+      Añade, quita o renombra lo que quieras. */
+const MATERIALS_CATALOG = {
+  adamantite:      "Adamantite Nugget",
+  mithril:         "Mithril Alloy",
+  oriharukon:      "Oriharukon Ore",
+  steel:           "Steel",
+  silver:          "Silver Nugget",
+  iron_ore:        "Iron Ore",
+  coal:            "Coal",
+  charcoal:        "Charcoal",
+  animal_bone:     "Animal Bone",
+  bone_powder:     "Coarse Bone Powder",
+  crafted_leather: "Crafted Leather",
+  leather:         "Leather",
+  cokes:           "Cokes",
+  synthetic_cokes: "Synthetic Cokes",
+  varnish:         "Varnish",
+  stem:            "Stem",
+  thread:          "Thread",
+  braided_hemp:    "Braided Hemp",
+  compound_braid:  "Compound Braid",
+  metallic_fiber:  "Metallic Fiber",
+  metallic_thread: "Metallic Thread",
+  mold_glue:       "Mold Glue",
+  mold_lubricant:  "Mold Lubricant",
+  mold_hardener:   "Mold Hardener",
+  durable_plate:   "Durable Metal Plate",
+  suede:           "High Grade Suede",
+  enria:           "Enria",
+  asofe:           "Asofe",
+  thons:           "Thons"
+};
 
-    const grid = document.getElementById('materialsGrid');
-    const summaryList = document.getElementById('summaryList');
-    const totalQty = document.getElementById('totalQty');
-    const filledCount = document.getElementById('filledCount');
-    const resetBtn = document.getElementById('resetBtn');
-    const sortBtn = document.getElementById('sortBtn');
-    const generateReportBtn = document.getElementById('generateReportBtn');
-    const copyReportBtn = document.getElementById('copyReportBtn');
-    const compactViewBtn = document.getElementById('compactViewBtn');
-    const backAppBtn = document.getElementById('backAppBtn');
-    const exportOutput = document.getElementById('exportOutput');
-    const copyStatus = document.getElementById('copyStatus');
-    const compactInfo = document.getElementById('compactInfo');
-    const compactGrid = document.getElementById('compactGrid');
-    const compactNotes = document.getElementById('compactNotes');
+/* 3) Flechas. null = flechas SVG blancas incluidas.
+      O pon tu PNG, ej: left: "img/flecha-izq.png"
+      (si solo pones la izquierda, la derecha se genera girándola). */
+const ARROWS = { left: null, right: null };
 
-    const matSearch = document.getElementById('matSearch');
-    const searchMeta = document.getElementById('searchMeta');
-    const searchClear = document.getElementById('searchClear');
-    const searchIcon = document.getElementById('searchIcon');
-    const noResults = document.getElementById('noResults');
+/* 4) Opciones */
+const OPTIONS = {
+  autoRotateSeconds: 0,   // 0 = desactivado; ej. 8 = cambia solo cada 8 s
+  transitionMs: 280       // velocidad del cambio entre objetivos
+};
 
-    let sortByQuantity = false;
+/* ══════════════════════════════════════════════════════════════════
+   A partir de aquí no hace falta tocar nada
+   ══════════════════════════════════════════════════════════════════ */
 
-    function createCard(mat, index) {
-      const card = document.createElement('article');
-      card.className = 'mat-card';
-      card.dataset.name = mat.name.toLowerCase();
-      card.dataset.type = mat.type.toLowerCase();
-      card.innerHTML = `
-        <div class="mat-top">
-          <button class="mat-icon" type="button" title="Click +1">
-            <img src="" alt="${mat.name}">
-            <span>${mat.icon}</span>
-          </button>
-          <div>
-            <div class="mat-name">${mat.name}</div>
-            <div class="mat-type">${mat.type}</div>
-          </div>
-        </div>
-        <div class="stepper">
-          <button class="btn minus" type="button">−</button>
-          <input class="qty" type="number" min="0" value="0" data-name="${mat.name}" data-index="${index}">
-          <button class="btn plus" type="button">+</button>
-        </div>
-      `;
-      const qty = card.querySelector('.qty');
-      card.querySelector('.plus').addEventListener('click', () => updateQty(qty, 1));
-      card.querySelector('.minus').addEventListener('click', () => updateQty(qty, -1));
-      card.querySelector('.mat-icon').addEventListener('click', () => updateQty(qty, 1));
-      qty.addEventListener('input', () => {
-        if (+qty.value < 0 || qty.value === '') qty.value = 0;
-        refreshSummary();
-      });
-      return card;
-    }
+const $ = id => document.getElementById(id);
+const slide = $("slide"), itemStage = $("itemStage"), itemImg = $("itemImg");
+const barFill = $("barFill"), barLabel = $("barLabel"), bar = $("bar");
+let index = 0, busy = false, countRaf = 0, autoTimer = 0;
 
-    function updateQty(input, delta) {
-      const current = parseInt(input.value || '0', 10);
-      input.value = Math.max(0, current + delta);
-      refreshSummary();
-    }
+/* flechas (SVG por defecto con la forma de media luna del diseño) */
+const arrowSVG = dir => `<svg viewBox="0 0 52 104" aria-hidden="true"><path d="${
+  dir === "left" ? "M52 0 L0 52 L52 104 C34 78 34 26 52 0Z" : "M0 0 L52 52 L0 104 C18 78 18 26 0 0Z"}"/></svg>`;
+function buildArrow(btn, dir){
+  const src = dir === "left" ? ARROWS.left : (ARROWS.right || ARROWS.left);
+  if(src){
+    btn.innerHTML = `<img src="${src}" alt="" draggable="false">`;
+    if(dir === "right" && !ARROWS.right) btn.firstChild.style.transform = "scaleX(-1)";
+  } else btn.innerHTML = arrowSVG(dir);
+}
+buildArrow($("prev"), "left"); buildArrow($("next"), "right");
 
-    function refreshSummary() {
-      const rows = [...document.querySelectorAll('.qty')]
-        .map(input => ({ name: input.dataset.name, qty: parseInt(input.value || '0', 10) }))
-        .filter(item => item.qty > 0);
-      if (sortByQuantity) rows.sort((a, b) => b.qty - a.qty || a.name.localeCompare(b.name));
-      summaryList.innerHTML = rows.length
-        ? rows.map(item => `<div class="summary-item"><span>${item.name}</span><strong>x${item.qty}</strong></div>`).join('')
-        : '<div class="empty">Aún no hay materiales añadidos.</div>';
-      totalQty.textContent = rows.reduce((sum, item) => sum + item.qty, 0);
-      filledCount.textContent = rows.length;
-    }
+/* destellos alrededor del ítem */
+(function makeSparks(){
+  const box = $("sparks");
+  for(let i = 0; i < 9; i++){
+    const s = document.createElement("span");
+    s.className = "spark";
+    s.style.left = (18 + Math.random() * 64) + "%";
+    s.style.animationDelay = (Math.random() * 4.5).toFixed(2) + "s";
+    s.style.animationDuration = (3.4 + Math.random() * 2.4).toFixed(2) + "s";
+    box.appendChild(s);
+  }
+})();
 
-    // ── SEARCH LOGIC ──
-    function filterMats(query) {
-      const q = query.trim().toLowerCase();
-      const cards = [...document.querySelectorAll('.mat-card')];
-      let visible = 0;
+/* burbujas dentro de la barra */
+(function makeBubbles(){
+  const box = $("bubbles");
+  for(let i = 0; i < 10; i++){
+    const b = document.createElement("span");
+    const size = 3 + Math.random() * 5;
+    b.className = "bubble";
+    b.style.width = b.style.height = size + "px";
+    b.style.left = (Math.random() * 96) + "%";
+    b.style.animationDelay = (Math.random() * 4).toFixed(2) + "s";
+    b.style.animationDuration = (2.4 + Math.random() * 2.6).toFixed(2) + "s";
+    box.appendChild(b);
+  }
+})();
 
-      cards.forEach(card => {
-        const nameMatch = card.dataset.name.includes(q);
-        const typeMatch = card.dataset.type.includes(q);
-        const matches = !q || nameMatch || typeMatch;
-        card.classList.toggle('hidden', !matches);
-        card.classList.toggle('search-highlight', !!(q && matches));
-        if (matches) visible++;
-      });
+/* puntos de navegación */
+const dots = $("dots");
+TARGETS.forEach((t, i) => {
+  const d = document.createElement("button");
+  d.type = "button"; d.setAttribute("aria-label", "Ir a " + t.item);
+  d.addEventListener("click", () => goTo(i));
+  dots.appendChild(d);
+});
+if(TARGETS.length < 2){
+  $("prev").classList.add("hidden"); $("next").classList.add("hidden"); dots.style.display = "none";
+}
 
-      noResults.style.display = (q && visible === 0) ? 'block' : 'none';
-      grid.style.display = (q && visible === 0) ? 'none' : '';
+function renderMaterials(t){
+  const body = $("matBody"); body.textContent = "";
+  const title = $("matTitle");
+  title.textContent = t.panelTitle || "Materiales necesarios";
+  title.hidden = false;
+  if(t.message){                                   // mensaje libre en vez de lista
+    if(!t.panelTitle) title.hidden = true;
+    const p = document.createElement("p"); p.className = "mat-message"; p.textContent = t.message;
+    body.appendChild(p); return;
+  }
+  if(t.materialsImage){
+    const img = document.createElement("img");
+    img.className = "mat-image"; img.src = t.materialsImage; img.alt = "Materiales para " + t.item;
+    img.addEventListener("error", () => { body.textContent = ""; const p = document.createElement("p"); p.className = "mat-empty"; p.textContent = "No se encuentra la imagen de materiales."; body.appendChild(p); });
+    body.appendChild(img); return;
+  }
+  if(!t.materials || !t.materials.length){
+    const p = document.createElement("p"); p.className = "mat-empty"; p.textContent = "Sin materiales indicados."; body.appendChild(p); return;
+  }
+  const ul = document.createElement("ul"); ul.className = "mat-list";
+  t.materials.forEach(([id, qty]) => {
+    const li = document.createElement("li");
+    const name = document.createElement("span"); name.textContent = MATERIALS_CATALOG[id] || id;
+    const q = document.createElement("span"); q.className = "mat-qty"; q.textContent = "x" + qty;
+    li.append(name, q); ul.appendChild(li);
+  });
+  body.appendChild(ul);
+}
 
-      if (q) {
-        searchMeta.textContent = `${visible} de ${cards.length} materiales`;
-        searchClear.style.display = 'block';
-        searchIcon.style.display = 'none';
-      } else {
-        searchMeta.textContent = '';
-        searchClear.style.display = 'none';
-        searchIcon.style.display = 'block';
-        cards.forEach(c => c.classList.remove('search-highlight'));
-      }
-    }
+function setProgress(pct){
+  pct = Math.max(0, Math.min(100, Number(pct) || 0));
+  bar.setAttribute("aria-valuenow", pct);
+  cancelAnimationFrame(countRaf);
+  barFill.style.transition = "none"; barFill.style.width = "0%"; barLabel.textContent = "0%";
+  void barFill.offsetWidth;                       // reinicia la transición
+  barFill.style.transition = ""; barFill.style.width = pct + "%";
+  const start = performance.now(), dur = 1600;
+  const tick = now => {
+    const p = Math.min(1, (now - start) / dur), e = 1 - Math.pow(1 - p, 3);
+    barLabel.textContent = Math.round(pct * e) + "%";
+    if(p < 1) countRaf = requestAnimationFrame(tick);
+  };
+  countRaf = requestAnimationFrame(tick);
+}
 
-    matSearch.addEventListener('input', () => filterMats(matSearch.value));
-    searchClear.addEventListener('click', () => {
-      matSearch.value = '';
-      filterMats('');
-      matSearch.focus();
-    });
-    // ── end SEARCH LOGIC ──
+function render(){
+  const t = TARGETS[index];
+  document.documentElement.style.setProperty("--aura", t.aura || "#6aa8ff");
+  itemStage.classList.remove("broken");
+  itemImg.onerror = () => itemStage.classList.add("broken");
+  itemImg.src = t.image; itemImg.alt = t.item;
+  $("itemName").textContent = t.item;
+  $("character").textContent = t.character;
+  renderMaterials(t);
+  setProgress(t.progress);
+  [...dots.children].forEach((d, i) => d.setAttribute("aria-current", i === index));
+}
 
-    function getRows() {
-      return [...document.querySelectorAll('.qty')]
-        .map(input => ({ name: input.dataset.name, qty: parseInt(input.value || '0', 10) }))
-        .filter(item => item.qty > 0)
-        .sort((a, b) => a.name.localeCompare(b.name));
-    }
+async function goTo(i, dir){
+  if(busy || i === index) return;
+  busy = true;
+  dir = dir || (i > index ? 1 : -1);
+  const ms = OPTIONS.transitionMs;
+  await slide.animate(
+    [{opacity:1, transform:"translateX(0)"}, {opacity:0, transform:`translateX(${-40 * dir}px)`}],
+    {duration:ms, easing:"ease-in", fill:"forwards"}).finished;
+  index = (i + TARGETS.length) % TARGETS.length;
+  render();
+  await slide.animate(
+    [{opacity:0, transform:`translateX(${40 * dir}px)`}, {opacity:1, transform:"translateX(0)"}],
+    {duration:ms, easing:"ease-out", fill:"forwards"}).finished;
+  slide.getAnimations().forEach(a => a.cancel());
+  busy = false;
+}
+const step = dir => goTo((index + dir + TARGETS.length) % TARGETS.length, dir);
 
-    function buildReport() {
-      const nickname = document.getElementById('nickname').value.trim() || 'Sin nick';
-      const level = document.getElementById('level').value.trim() || '-';
-      const role = document.getElementById('clanRole').value.trim() || '-';
-      const recipes = document.getElementById('recipes').value.trim() || 'Sin recipes registradas';
-      const drops = document.getElementById('drops').value.trim() || 'Sin drops registrados';
-      const rows = getRows();
-      const total = rows.reduce((sum, item) => sum + item.qty, 0);
-      const date = new Date().toLocaleDateString('es-ES');
-      let text = `🛡️ CLAN MATS REPORT - ${date}\n`;
-      text += `Nick: ${nickname} | Level: ${level} | Class/Role: ${role}\n`;
-      text += `Total: ${total} unidades | Tipos de mats: ${rows.length}\n`;
-      text += `--------------------------------\n`;
-      text += rows.length ? rows.map(item => `${item.name}: x${item.qty}`).join('\n') : 'Sin materiales registrados';
-      text += `\n\n📜 Recipes:\n${recipes}`;
-      text += `\n\n💎 Drops / Spoils:\n${drops}`;
-      return text;
-    }
+$("prev").addEventListener("click", () => { step(-1); restartAuto(); });
+$("next").addEventListener("click", () => { step(1);  restartAuto(); });
+document.addEventListener("keydown", e => {
+  if(e.key === "ArrowLeft"){ step(-1); restartAuto(); }
+  if(e.key === "ArrowRight"){ step(1); restartAuto(); }
+});
 
-    function generateReport() {
-      exportOutput.value = buildReport();
-      copyStatus.textContent = '';
-    }
+/* deslizar con el dedo en móvil */
+let tx = null;
+$("viewer").addEventListener("touchstart", e => { tx = e.touches[0].clientX; }, {passive:true});
+$("viewer").addEventListener("touchend", e => {
+  if(tx === null) return;
+  const dx = e.changedTouches[0].clientX - tx; tx = null;
+  if(Math.abs(dx) > 50){ step(dx < 0 ? 1 : -1); restartAuto(); }
+});
 
-    async function copyReport() {
-      if (!exportOutput.value.trim()) generateReport();
-      exportOutput.select();
-      try {
-        await navigator.clipboard.writeText(exportOutput.value);
-        copyStatus.textContent = 'Informe copiado. Ya se puede pegar en Discord o WhatsApp.';
-      } catch (e) {
-        document.execCommand('copy');
-        copyStatus.textContent = 'Informe seleccionado/copiado. Si no se copió, pulsa Ctrl+C.';
-      }
-    }
+function restartAuto(){
+  clearInterval(autoTimer);
+  if(OPTIONS.autoRotateSeconds > 0 && TARGETS.length > 1)
+    autoTimer = setInterval(() => step(1), OPTIONS.autoRotateSeconds * 1000);
+}
 
-    function renderCompactView() {
-      const nickname = document.getElementById('nickname').value.trim() || 'Sin nick';
-      const level = document.getElementById('level').value.trim() || '-';
-      const role = document.getElementById('clanRole').value.trim() || '-';
-      const recipes = document.getElementById('recipes').value.trim();
-      const drops = document.getElementById('drops').value.trim();
-      const rows = getRows();
-      const total = rows.reduce((sum, item) => sum + item.qty, 0);
-      compactInfo.innerHTML = `<p><strong>Nick:</strong> ${nickname} · <strong>Level:</strong> ${level} · <strong>Role:</strong> ${role} · <strong>Total:</strong> ${total}</p>`;
-      compactGrid.innerHTML = rows.length
-        ? rows.map(item => `<div class="compact-line"><span>${item.name}</span><strong>x${item.qty}</strong></div>`).join('')
-        : '<p>Sin materiales registrados.</p>';
-      compactNotes.innerHTML = `${recipes ? `<p><strong>Recipes:</strong><br>${recipes.replace(/\n/g, '<br>')}</p>` : ''}${drops ? `<p><strong>Drops:</strong><br>${drops.replace(/\n/g, '<br>')}</p>` : ''}`;
-      document.body.classList.add('print-mode');
-      window.scrollTo(0, 0);
-    }
-
-    function setWeekLabel() {
-      const now = new Date();
-      const monday = new Date(now);
-      const day = monday.getDay() || 7;
-      monday.setDate(monday.getDate() - day + 1);
-      const sunday = new Date(monday);
-      sunday.setDate(monday.getDate() + 6);
-      const opts = { day: '2-digit', month: 'short' };
-      document.getElementById('weekLabel').textContent = `${monday.toLocaleDateString('es-ES', opts)} - ${sunday.toLocaleDateString('es-ES', opts)}`;
-    }
-
-    materials.forEach((mat, index) => grid.appendChild(createCard(mat, index)));
-    setWeekLabel();
-
-    resetBtn.addEventListener('click', () => {
-      document.querySelectorAll('.qty').forEach(input => input.value = 0);
-      refreshSummary();
-    });
-    sortBtn.addEventListener('click', () => {
-      sortByQuantity = !sortByQuantity;
-      sortBtn.textContent = sortByQuantity ? 'Orden original' : 'Ordenar por cantidad';
-      refreshSummary();
-    });
-    generateReportBtn.addEventListener('click', generateReport);
-    copyReportBtn.addEventListener('click', copyReport);
-    compactViewBtn.addEventListener('click', renderCompactView);
-    backAppBtn.addEventListener('click', () => document.body.classList.remove('print-mode'));
-  </script>
+render();
+restartAuto();
+</script>
 </body>
 </html>
