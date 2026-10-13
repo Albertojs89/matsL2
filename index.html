@@ -368,13 +368,13 @@ body{
 /* 1) Objetivos (normalmente 2 o 3) */
 const TARGETS = [
   {
-    item: "Bow of Peril",
-    image: "peril.png",     // PNG con fondo transparente
-    character: "Pupita",
-    startDate: "2026-10-11",            // fecha de inicio: "2026-10-01" o "01/10/2026"
-    progress: 97,                       // 0 a 100
+    item: "Bellion Cestus",
+    image: "bc.png",     // PNG con fondo transparente
+    character: "CARNICERO",
+    startDate: "2026-10-13",            // fecha de inicio: "2026-10-01" o "01/10/2026"
+    progress: 90,                       // 0 a 100
     aura: "#6aa8ff",                    // color del brillo y de la barra (opcional)
-    message: "Enrias",         // texto libre en vez de lista. Ej: "Ya tenemos todo, falta craftear"
+    message: "Enrias - 83, Recipe 100%",         // texto libre en vez de lista. Ej: "Ya tenemos todo, falta craftear"
     materials: [                        // [id del catálogo, cantidad]
       ["adamantite", 24],
       ["mithril", 18],
@@ -387,11 +387,11 @@ const TARGETS = [
   {
     item: "Black Ore",
     image: "bo.png",
-    character: "Glasy",
+    character: "Narf",
     startDate: "2026-10-11",
-    progress: 85,
+    progress: 0,
     aura: "#ff9d5c",
-    message: "Cristales B, 8 Mold Glue, 7 Keys Necklace.",
+    message: "Por definir",
     materials: [
       ["mithril", 30],
       ["steel", 50],
@@ -400,6 +400,7 @@ const TARGETS = [
     ],
     materialsImage: null
   },
+  /*
   {
     item: "Blue Wolf Heavy Armor",
     image: "bw.png",
@@ -444,6 +445,7 @@ const TARGETS = [
     ],
     materialsImage: null
   }
+    */
 ];
 
 /* 2) Catálogo de materiales básicos (id → nombre que se muestra).
