@@ -25,7 +25,7 @@
                      se muestra en vez de la lista y de la imagen.
         panelTitle   (opcional) título del panel. Por defecto "Materiales necesarios"
                      (con message no se muestra título salvo que lo pongas).
-        materials    lista de materiales: [["id_material", cantidad], ...]
+        materials    lista de materiales: [["id_material", cantidad?], ...]
         materialsImage  (opcional) ruta de una imagen con los materiales.
                         Si la pones, se usa la imagen en vez de la lista.
   3) MATERIALS_CATALOG → catálogo de materiales básicos. Añade los que quieras:
@@ -367,6 +367,7 @@ body{
 
 /* 1) Objetivos (normalmente 2 o 3) */
 const TARGETS = [
+  /*
   {
     item: "Bellion Cestus",
     image: "bc.png",     // PNG con fondo transparente
@@ -384,14 +385,15 @@ const TARGETS = [
     ],
     materialsImage: null                // ej: "img/materiales-bow.png"  (si lo pones, sustituye a la lista)
   },
+  */
   {
     item: "Black Ore",
     image: "bo.png",
     character: "Narf",
     startDate: "2026-10-11",
-    progress: 0,
+    progress: 90,
     aura: "#ff9d5c",
-    message: "Por definir",
+    message: "Thons",
     materials: [
       ["mithril", 30],
       ["steel", 50],
@@ -400,7 +402,6 @@ const TARGETS = [
     ],
     materialsImage: null
   },
-  /*
   {
     item: "Blue Wolf Heavy Armor",
     image: "bw.png",
@@ -410,42 +411,42 @@ const TARGETS = [
     aura: "#ff9d5c",
     message: null,
     materials: [
-        ["stem", 0],
-        ["coal", 0],
-        ["charcoal", 0],
-        ["silver_nugget", 0],
-        ["stone_of_purity", 0],
-        ["varnish", 0],
-        ["animal_bone", 0],
-        ["mithril_ore", 0],
-        ["asofe", 0],
-        ["mold_glue", 0],
-        ["mold_lubricant", 0],
-        ["iron_ore", 0],
-        ["oriharukon_ore", 0],
-        ["suede", 0],
-        ["animal_skin", 0],
-        ["thread", 0],
-        ["gemstone_b", 0],
-        ["crystal_b", 0],
+        ["stem"],
+        ["coal"],
+        ["charcoal"],
+        ["silver_nugget"],
+        ["stone_of_purity"],
+        ["varnish"],
+        ["animal_bone"],
+        ["mithril_ore"],
+        ["asofe"],
+        ["mold_glue"],
+        ["mold_lubricant"],
+        ["iron_ore"],
+        ["oriharukon_ore"],
+        ["suede"],
+        ["animal_skin"],
+        ["thread"],
+        ["gemstone_b"],
+        ["crystal_b"],
 
         // Keys
-        ["bw_breastplate_part", 0],
-        ["bw_gaiters_material", 0],
-        ["bw_gloves_fabric", 0],
-        ["bw_boots_design", 0],
-        ["bw_helmet_design", 0],
+        ["bw_breastplate_part"],
+        ["bw_gaiters_material"],
+        ["bw_gloves_fabric"],
+        ["bw_boots_design"],
+        ["bw_helmet_design"],
 
         // Recipes
-        ["recipe_bw_breastplate", 0],
-        ["recipe_bw_gaiters", 0],
-        ["recipe_bw_gloves", 0],
-        ["recipe_bw_boots", 0],
-        ["recipe_bw_helmet", 0]
+        ["recipe_bw_breastplate", 2],
+        ["recipe_bw_gaiters"],
+        ["recipe_bw_gloves", 2],
+        ["recipe_bw_boots"],
+        ["recipe_bw_helmet"],
+        ["recipe_bw_tunic", 2]
     ],
     materialsImage: null
   }
-    */
 ];
 
 /* 2) Catálogo de materiales básicos (id → nombre que se muestra).
@@ -623,8 +624,12 @@ function renderMaterials(t){
   t.materials.forEach(([id, qty]) => {
     const li = document.createElement("li");
     const name = document.createElement("span"); name.className = "mat-name"; name.textContent = MATERIALS_CATALOG[id] || id;
-    const q = document.createElement("span"); q.className = "mat-qty"; q.textContent = "x" + qty;
-    li.append(name, q); ul.appendChild(li);
+    li.appendChild(name);
+    if(qty !== undefined){
+      const q = document.createElement("span"); q.className = "mat-qty"; q.textContent = "x" + qty;
+      li.appendChild(q);
+    }
+    ul.appendChild(li);
   });
   body.appendChild(ul);
 }
